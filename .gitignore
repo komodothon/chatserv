@@ -1,0 +1,69 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# VS Code settings
+.vscode/
+
+# Pytest cache
+.pytest_cache/
+
+# MyPy cache
+.mypy_cache/
+
+__pycache__/
+*.pyc
+
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Logs
+*.log
+
+# Env files
+.env
+*.env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Mac OS
+.DS_Store
+
+# Linux
+*.swp
+
+# Database files
+*.sqlite3
+*.db
+
+# Migrations
+migrations/
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# Node modules (if using any JS tooling)
+node_modules/
+
+# test files
+test.py
+
+*.tar
+*.tar.gz
+*.zip
+*.bak
+*.log
