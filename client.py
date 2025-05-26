@@ -3,6 +3,9 @@
 import socket
 import threading
 
+HOST = "192.168.1.6"  # Change to server's IP if connecting remotely
+PORT = 12345
+
 def receive_messages(client_socket):
     while True:
         try:
@@ -16,11 +19,10 @@ def receive_messages(client_socket):
             break
 
 def client_program():
-    host = 'localhost'  # Change to server's IP if connecting remotely
-    port = 5555
+
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((host, port))
+    client_socket.connect((HOST, PORT))
 
     # Start thread to receive messages from server
     threading.Thread(target=receive_messages, args=(client_socket,), daemon=True).start()

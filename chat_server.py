@@ -3,6 +3,9 @@
 import socket
 import threading
 
+HOST = "0.0.0.0" 
+PORT = 12345
+
 clients = []
 
 def handle_client(client_socket, client_address):
@@ -24,7 +27,9 @@ def broadcast(message, sender_socket):
 
 def start_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(('localhost', 5555))
+
+
+    server.bind((HOST, PORT))
     server.listen()
     print("[STARTED] Server is listening")
 
