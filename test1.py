@@ -1,16 +1,10 @@
 """/test1.py"""
 
-import threading
+import asyncio
 
-def print_numbers():
-    for i in range(5):
-        print(i)
+async def main():
+    print("Start")
+    await asyncio.sleep(5)  # doesn't block, allows other tasks to run
+    print("End")
 
-# Create a thread
-t = threading.Thread(target=print_numbers)
-
-# Start the thread
-t.start()
-
-# Continue main thread
-print("Main thread running.")
+asyncio.run(main())

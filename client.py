@@ -3,8 +3,8 @@
 import socket
 import threading
 
-HOST = "192.168.1.6"  # Change to server's IP if connecting remotely
-PORT = 12345
+HOST = "68.233.111.200"  # Change to server's IP if connecting remotely
+PORT = 8000
 
 def receive_messages(client_socket):
     while True:

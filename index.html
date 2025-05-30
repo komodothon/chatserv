@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Chat Client</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    #messages { list-style: none; padding: 0; }
+    #messages li { margin: 5px 0; }
+    .me { font-weight: bold; color: green; }
+    .server { color: blue; }
+  </style>
+</head>
+<body>
+  <h1>WebSocket Chat</h1>
+  <input id="msg" placeholder="Type message..." autocomplete="off" />
+  <button onclick="sendMessage()">Send</button>
+  <ul id="messages"></ul>
+
+  <script src="main.js"></script>
+</body>
+</html>
