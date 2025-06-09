@@ -1,22 +1,72 @@
 """/chat_server_ws.py"""
 
 import asyncio
-import websockets
 import json
+import jwt
+import os
+import websockets
+
+from websockets.asyncio.server import serve
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+from urllib.parse import urlparse, parse_qs
+from pprint import pprint
 
 connected_clients = set()
 
 HOST = "0.0.0.0"
 PORT = 8000
 
+jwt_secret_key = os.getenv("JWT_SECRET_KEY", "super_secret_jwt_key")
+jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
+
 async def on_connect(websocket):
     peername = websocket.remote_address
     client_ip, client_port = peername
+    print(f"[chat_server_ws.py] client_ip: {client_ip}, client_port: {client_port}")
+
+    path = websocket.request.path
+    print(f"[chat_server_ws.py] Got path: {path}")
+    query_dict = parse_qs(urlparse(path).query)
+    print(f"[chat_server_ws.py] query_dict: {query_dict}")
+    token = query_dict.get("token", [None])[0]
+    print(f"[chat_server_ws.py] token: {token}")
+
+
+    if not token:
+        print(f"[chat_server_ws.py] under 'if not token'")
+        await websocket.close(code=4401, reason="Missing token")
+        return
+
+    try:
+        print(f"[chat_server_ws.py] under 'try:'")
+
+        payload = jwt.decode(token, jwt_secret_key, [jwt_algorithm]) 
+        print(f"[chat_server_ws.py] after 'payload'")
+
+        user_id = payload.get("sub", None) or payload.get("identity", None) or payload.get("user_id", None)
+        print(f"[chat_server_ws.py] user_id: {user_id}")
+
+        if not user_id:
+            raise jwt.InvalidTokenError("Missing user ID in token")
+        
+        print(f"✅ Authenticated user ID: {user_id}")
+    except jwt.ExpiredSignatureError:
+        await websocket.close(code=4401, reason="Token expired")
+        return
+    except jwt.InvalidTokenError as e:
+        await websocket.close(code=4401, reason=f"Invalid token: {e}")
+        return
+    
 
     print(f"✅ Client connected: {client_ip}:{client_port}")
 
     connected_clients.add(websocket)
-    return client_ip, client_port
+    return (client_ip, client_port)
 
 
 async def on_message(websocket, message, client_ip, client_port):
@@ -60,7 +110,14 @@ async def on_error(websocket, error):
 
 
 async def handler(websocket):
-    client_ip, client_port = await on_connect(websocket)
+
+    connection_info = await on_connect(websocket)
+
+    # Handle early disconnect (e.g., invalid token)
+    if connection_info is None:
+        return
+
+    client_ip, client_port = connection_info
 
     try:
         async for message in websocket:
@@ -72,18 +129,14 @@ async def handler(websocket):
     finally:
         await on_disconnect(websocket, client_ip, client_port)
 
-async def main():
-    async with websockets.serve(
-        handler,
-        HOST,
-        PORT,
-        ping_interval = 600,
-        ping_timeout = 100,
-    ):
 
+async def main():
+    async with websockets.serve(handler, HOST, PORT):
         print(f"🚀 WebSocket server started at ws://{HOST}:{PORT}")
         await asyncio.Future()  # Run forever
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+
