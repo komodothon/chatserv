@@ -21,8 +21,8 @@ connected_clients = set()
 HOST = "0.0.0.0"
 PORT = 8000
 
-jwt_secret_key = os.getenv("JWT_SECRET_KEY", "super_secret_jwt_key")
-jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
+jwt_secret_key = os.getenv("JWT_SECRET_KEY")
+jwt_algorithm = os.getenv("JWT_ALGORITHM")
 
 async def on_connect(websocket):
     peername = websocket.remote_address
