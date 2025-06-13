@@ -5,8 +5,9 @@ import json
 import jwt
 import os
 import websockets
+import requests
 
-from websockets.asyncio.server import serve
+from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 
@@ -21,18 +22,33 @@ connected_clients = set()
 HOST = "0.0.0.0"
 PORT = 8000
 
+# for development
+CHATFRONT_API_URL = "http://localhost:5000/api/messages/save_message"
+
+# for production
+# CHATFRONT_API_URL = ""
+
+
 jwt_secret_key = os.getenv("JWT_SECRET_KEY")
 jwt_algorithm = os.getenv("JWT_ALGORITHM")
+
+def post_message_to_chatfront(payload):
+    try:
+        res = requests.post(CHATFRONT_API_URL, json=payload, timeout=3)
+        print(f"✅ Message saved: {res.status_code}")
+    except Exception as e:
+        print(f"❌ Failed to save message to chatfront API: {e}")
+
 
 async def on_connect(websocket):
     peername = websocket.remote_address
     client_ip, client_port = peername
-    print(f"[chat_server_ws.py] client_ip: {client_ip}, client_port: {client_port}")
+    # print(f"[chat_server_ws.py] client_ip: {client_ip}, client_port: {client_port}")
 
     path = websocket.request.path
-    print(f"[chat_server_ws.py] Got path: {path}")
+    # print(f"[chat_server_ws.py] Got path: {path}")
     query_dict = parse_qs(urlparse(path).query)
-    print(f"[chat_server_ws.py] query_dict: {query_dict}")
+    # print(f"[chat_server_ws.py] query_dict: {query_dict}")
     token = query_dict.get("token", [None])[0]
     print(f"[chat_server_ws.py] token: {token}")
 
@@ -43,18 +59,18 @@ async def on_connect(websocket):
         return
 
     try:
-        print(f"[chat_server_ws.py] under 'try:'")
+        # print(f"[chat_server_ws.py] under 'try:'")
 
         payload = jwt.decode(token, jwt_secret_key, [jwt_algorithm]) 
-        print(f"[chat_server_ws.py] after 'payload'")
+        # print(f"[chat_server_ws.py] after 'payload'")
 
         user_id = payload.get("sub", None) or payload.get("identity", None) or payload.get("user_id", None)
-        print(f"[chat_server_ws.py] user_id: {user_id}")
+        print(f"[chat_server_ws.py] ✅ user_id: {user_id}")
 
         if not user_id:
             raise jwt.InvalidTokenError("Missing user ID in token")
         
-        print(f"✅ Authenticated user ID: {user_id}")
+        # print(f"✅ Authenticated user ID: {user_id}")
     except jwt.ExpiredSignatureError:
         await websocket.close(code=4401, reason="Token expired")
         return
@@ -77,21 +93,33 @@ async def on_message(websocket, message, client_ip, client_port):
     except json.JSONDecodeError:
         await websocket.send(json.dumps({
             "type": "error",
-            "message": "Invalid message format. Expecting JSON"
+            "content": "Invalid message format. Expecting JSON"
         }))
         return 
     
+    timestamp = datetime.now(timezone.utc).isoformat()
+    # print(f"[chat_server_ws.py] timestamp: {timestamp}")
+
+    payload = {
+        "type": data.get("type", "chat"),
+        "sender": data.get("sender", f"{client_ip}:{client_port}"),
+        "room": data.get("room", "general"),
+        "content": data.get("content", ""),
+        "timestamp": timestamp,
+    }
+
+    # broadcast
     for client in connected_clients:
-        if client != websocket:
-            try:
-                await client.send(json.dumps({
-                    "type": data.get("type", "chat"),
-                    "sender": data.get("sender", f"{client_ip}:{client_port}"),
-                    "room": data.get("room", "general"),
-                    "message": data.get("message", "")
-                }))
-            except Exception as e:
-                print(f"⚠️ Error sending to a client: {e}")
+        try:
+            await client.send(json.dumps(payload))
+        except Exception as e:
+            print(f"⚠️ Error sending to a client: {e}")
+
+    if payload["type"] == "chat":
+        # send to chatfront api for saving in db
+        loop = asyncio.get_event_loop()
+        loop.run_in_executor(None, post_message_to_chatfront, payload)    
+        
 
 
 async def on_disconnect(websocket, client_ip, client_port):
@@ -103,7 +131,7 @@ async def on_error(websocket, error):
     try:
         await websocket.send(json.dumps({
             "type": "error",
-            "message": str(error)
+            "content": str(error)
         }))
     except:
         pass  # Socket may already be closed
@@ -134,7 +162,7 @@ async def main():
     async with websockets.serve(handler, HOST, PORT):
         print(f"🚀 WebSocket server started at ws://{HOST}:{PORT}")
         await asyncio.Future()  # Run forever
-
+            
 
 if __name__ == "__main__":
     asyncio.run(main())

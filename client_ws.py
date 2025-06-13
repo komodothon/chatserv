@@ -16,7 +16,7 @@ load_dotenv()
 
 
 # You can hardcode or prompt for these:
-USERNAME = "Python terminal client"
+USERNAME = "user4"
 ROOM = "general"
 
 def generate_token(user_id):
@@ -29,24 +29,22 @@ def generate_token(user_id):
     }
     
 
-    jwt_secret_key = os.getenv("JWT_SECRET_KEY", "super_secret_jwt_key")
-    jwt_algorithm = os.getenv("JWT_ALGORITHM", "HS256")
+    jwt_secret_key = os.getenv("JWT_SECRET_KEY")
+    jwt_algorithm = os.getenv("JWT_ALGORITHM")
 
     jwt_token = jwt.encode(payload, jwt_secret_key, jwt_algorithm)
     return jwt_token
 
 async def chat():    
     user_id = 4
-    # token = "abc123"
-    token = ""
+
 
     jwt_token = generate_token(user_id)
     print(f"[client_ws.py] jwt_token: {jwt_token}")
 
-    # uri = "wss://oceanotech.in/chat"
+    uri = f"wss://chat.oceanotech.in/?token={jwt_token}"
     
-    uri = f"ws://localhost:8000/chat?token={jwt_token}"
-    # uri = "ws://localhost:8000/?token=test123"
+    # uri = f"ws://localhost:8000/chat?token={jwt_token}"
     # uri = "ws://192.168.1.6:8000"
 
     # Set up SSL context to verify certificate
@@ -54,8 +52,8 @@ async def chat():
 
 
     try:
-        # async with websockets.connect(uri, ssl=ssl_context) as websocket:
-        async with websockets.connect(uri) as websocket:
+        async with websockets.connect(uri, ssl=ssl_context) as websocket:
+        # async with websockets.connect(uri) as websocket:
             print(f"Connected to {uri} as {USERNAME} in room '{ROOM}'")
 
             async def send_messages():
@@ -93,15 +91,3 @@ async def chat():
 if __name__ == "__main__":
     asyncio.run(chat())
 
-
-# Minimal test client
-
-
-# async def go():
-#     token = "abc123"
-#     uri = f"ws://localhost:8000/test?token={token}"
-
-#     async with websockets.connect(uri) as ws:
-#         print(await ws.recv())
-
-# asyncio.run(go())
