@@ -26,7 +26,7 @@ PORT = 8000
 CHATFRONT_API_URL = "http://localhost:5000/api/messages/save_message"
 
 # for production
-# CHATFRONT_API_URL = ""
+# CHATFRONT_API_URL = "https://oceanotech.in/api/messages/save_message"
 
 
 jwt_secret_key = os.getenv("JWT_SECRET_KEY")
@@ -50,7 +50,7 @@ async def on_connect(websocket):
     query_dict = parse_qs(urlparse(path).query)
     # print(f"[chat_server_ws.py] query_dict: {query_dict}")
     token = query_dict.get("token", [None])[0]
-    print(f"[chat_server_ws.py] token: {token}")
+    # print(f"[chat_server_ws.py] token: {token}")
 
 
     if not token:
