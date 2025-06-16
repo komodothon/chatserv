@@ -57,9 +57,8 @@ async def on_connect(websocket):
 
     try:
         payload = jwt.decode(token, jwt_secret_key, [jwt_algorithm]) 
-        # print(f"[chat_server_ws.py] payload.keys(): {payload.keys()}")
+
         user_id = payload.get("sub", None) or payload.get("identity", None) or payload.get("user_id", None)
-        username = payload.get("username")
 
         if not user_id:
             raise jwt.InvalidTokenError("Missing user ID in token")
@@ -75,7 +74,7 @@ async def on_connect(websocket):
 
     print(f"✅ Client connected: user_id: {user_id}")
 
-    session = ClientSession(websocket, user_id, username)
+    session = ClientSession(websocket, user_id)
     connected_clients[websocket] = session
     
 #    users_online = [
@@ -89,7 +88,7 @@ async def on_connect(websocket):
 #    ]
     
     users_online = [session.username for session in connected_clients.values()]
-    print(f"[chat_server_ws.py] users_online: {users_online}")
+
     await websocket.send(json.dumps({
         "type": "presence",
         "action": "online_users",
@@ -113,6 +112,7 @@ async def on_message(websocket, message, session):
     
     timestamp = datetime.now(timezone.utc).isoformat()
     # print(f"[chat_server_ws.py] timestamp: {timestamp}")
+    session.username = data.get("username", None)
     session.room = data.get("room", "general")
 
     payload = {
