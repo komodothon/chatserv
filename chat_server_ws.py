@@ -27,10 +27,10 @@ HOST = "0.0.0.0"
 PORT = 8000
 
 # for development
-CHATFRONT_API_URL = "http://localhost:5000/api/messages/save_message"
+# CHATFRONT_API_URL = "http://localhost:5000/api/messages/save_message"
 
 # for production
-# CHATFRONT_API_URL = "https://oceanotech.in/api/messages/save_message"
+CHATFRONT_API_URL = "https://oceanotech.in/api/messages/save_message"
 
 
 jwt_secret_key = os.getenv("JWT_SECRET_KEY")
