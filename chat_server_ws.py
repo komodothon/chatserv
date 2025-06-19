@@ -55,7 +55,17 @@ def post_message_to_chatfront(payload, session):
     print(f"[chat_server_ws.py] headers: {headers}")
     try:
         res = requests.post(CHATFRONT_API_URL, json=payload, headers=headers, timeout=3)
-        print(f"✅ Message saved: {res.status_code}")
+        # print(f"✅ Message saved: {res.status_code}")
+        print(f"[chat_server_ws.py] res: {res.status_code}")
+        print(f"[chat_server_ws.py] res: {res.headers}")
+        print(f"[chat_server_ws.py] res: {res.raw}")
+        print(f"[chat_server_ws.py] res: {res.url}")
+        print(f"[chat_server_ws.py] res: {res.encoding}")
+        print(f"[chat_server_ws.py] res: {res.history}")
+        print(f"[chat_server_ws.py] res: {res.reason}")
+        print(f"[chat_server_ws.py] res: {res.elapsed}")
+        print(f"[chat_server_ws.py] res: {res.request}")
+        print(f"[chat_server_ws.py] res: {res.connection}")
     except Exception as e:
         print(f"❌ Failed to save message to chatfront API: {e}")
 
